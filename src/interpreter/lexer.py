@@ -6,7 +6,7 @@ import attr
 from .types import Token, TokenType
 
 
-atomic_characters = set(string.ascii_letters + string.digits + '_')
+atomic_characters = set(string.ascii_letters + string.digits + '_.')
 
 
 syntactic_tokens = {
@@ -17,7 +17,7 @@ syntactic_tokens = {
 }
 
 
-@attr.s(auto_attribs=True, slots=True)
+@attr.s(auto_attribs=True, slots=True, frozen=True)
 class InvalidToken(Exception):
     value: str
     char: int = -1
@@ -52,21 +52,34 @@ def lex(s: str) -> List[Token]:
     state = ''
     in_number = False
     for i, c in enumerate(s):
+        # The token is continuing
         if c in atomic_characters:
             state = state + c
             continue
 
+        # Wrap up the current token
+        try:
+            finished_token = _token_from_state(state)
+        except InvalidToken as e:
+            e.char = i
+            raise
+
+        if finished_token:
+            result.append(finished_token)
+            state = ''
+
         # syntactic tokens
         token = syntactic_tokens.get(c, None)
         if token:
-            try:
-                finished_token = _token_from_state(state)
-            except InvalidToken as e:
-                e.char = i
-                raise
-
-            if finished_token:
-                result.append(finished_token)
             result.append(token)
             continue
+
+    # Wrap up the current token
+    try:
+        finished_token = _token_from_state(state)
+    except InvalidToken as e:
+        raise InvalidToken(e.value, char=i) from e
+    if finished_token:
+        result.append(finished_token)
+
     return result

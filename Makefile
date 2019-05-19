@@ -1,2 +1,2 @@
 test:
-	PYTHONPATH=src pytest src/interpreter/tests
+	PYTHONPATH=src pytest src/interpreter/tests -v
