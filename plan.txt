@@ -1,0 +1,36 @@
+List of things to support
+
+Number
+Variable
+Quoted string
+list
+Begin/Block/;
+If
+Lambda
+Set
+Application
+Define
+List:
+- cons, car, cdr, list: These can just be treated as normal functions during
+  parsing, then treated specially during evaluation: in other words necessary
+  built-ins, not keywords.
+- `list`
+- '(..)
+cons, car, cdr
+Way to get the arguments to a function as a list?
+
+Add on later:
+- string manipulation
+- call python functions
+- manipulate python objects?
+
+- Lexer
+- Parser
+- Evaluator
+
+REPL:
+- take input -> lexer -> parser -> evaluator -> printer (adds stuff to the persistent environment)
+
+(lambda (x) ((def x 5); x))(6) -> 5
+
+()
