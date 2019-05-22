@@ -27,13 +27,21 @@ class NodeType(Enum):
     NUMBER = 'number'
     VARIABLE = 'variable'
     STRING = 'string'
-    LIST = 'list'
+
+    # Not given by keywords, need to be figured out
     BLOCK = 'block'
+    APPLY = 'apply'
+    LIST = 'list'  # for quoted lists or the first arg to lambda
+
+    # keywords
     IF = 'if'
     LAMBDA = 'lambda'
     SET = 'set'
-    APPLY = 'apply'
     DEF = 'def'
+
+    # builtins should only be distinguished at evaluation (need to prevent
+    # assigning to them)
+    # e.g. nil, car, cdr, cons, list
 
 
 @attr.s(auto_attribs=True, slots=True)
