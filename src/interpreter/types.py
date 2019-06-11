@@ -49,3 +49,19 @@ class Node:
     variant: NodeType
     value: Any
 
+
+class ValueType(Enum):
+    NUMBER = 'number'
+    STRING = 'string'
+    LIST = 'list'
+    LAMBDA = 'lambda'
+
+
+@attr.s(auto_attribs=True, slots=True)
+class Value:
+    type_: ValueType
+    # for LAMBDA, it's a tuple with first arg the representation of the lambda,
+    # and the second is the scope given to the lambda.
+    # In turn, the first argument is the list of arguments, and the second is a
+    #
+    value: Any

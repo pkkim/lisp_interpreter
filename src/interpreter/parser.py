@@ -11,7 +11,7 @@ class ParseError(Exception):
 
 
 @attr.s(auto_attribs=True, slots=True)
-class Frame:
+class _Frame:
     variant: Optional[NodeType] = None
     nodes: List[Node] = attr.ib(factory=list)
 
@@ -22,10 +22,10 @@ class Frame:
 
 @attr.s(auto_attribs=True, slots=True)
 class Parser:
-    frames: Deque[Frame] = attr.ib(factory=lambda: deque([Frame()]))
+    frames: Deque[_Frame] = attr.ib(factory=lambda: deque([_Frame()]))
     quote_next: bool = False
 
-    def current_frame(self) -> Frame:
+    def current_frame(self) -> _Frame:
         return self.frames[-1]
 
     @staticmethod
@@ -97,7 +97,7 @@ class Parser:
                 (self.current_frame().variant == NodeType.LAMBDA and
                     len(self.current_frame().nodes) == 0)
             )
-            self.frames.append(Frame(NodeType.LIST if quoted else None))
+            self.frames.append(_Frame(NodeType.LIST if quoted else None))
         elif token.variant == TT.CLOSE_PAREN:
             node = self.finalize_current_frame()
             try:
