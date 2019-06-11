@@ -15,6 +15,8 @@ class TestParser(TestCase):
             ([T(TT.NUMBER, 5)], N(NT.NUMBER, 5)),
             # quoted string
             ([T(TT.QUOTE), T(TT.STRING, 'abc')], N(NT.STRING, 'abc')),
+            # bool
+            ([T(TT.STRING, 'true')], N(NT.BOOLEAN, True)),
             # quoted list
             ([
                 T(TT.QUOTE), T(TT.OPEN_PAREN),

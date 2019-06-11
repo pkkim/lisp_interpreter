@@ -27,6 +27,7 @@ class NodeType(Enum):
     NUMBER = 'number'
     VARIABLE = 'variable'
     STRING = 'string'
+    BOOLEAN = 'boolean'  # only 'true' and 'false'
 
     # Not given by keywords, need to be figured out
     BLOCK = 'block'
@@ -55,13 +56,14 @@ class ValueType(Enum):
     STRING = 'string'
     LIST = 'list'
     LAMBDA = 'lambda'
+    BOOLEAN = 'boolean'
 
 
 @attr.s(auto_attribs=True, slots=True)
 class Value:
     type_: ValueType
     # for LAMBDA, it's a tuple with first arg the representation of the lambda,
-    # and the second is the scope given to the lambda.
-    # In turn, the first argument is the list of arguments, and the second is a
-    #
+    # and the second is the list of scopes
+    # In turn, the first argument is the list of arguments, and the second is
+    # the body.
     value: Any

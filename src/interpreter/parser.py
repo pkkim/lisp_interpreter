@@ -70,6 +70,11 @@ class Parser:
         if quoted:
             current_frame.nodes.append(Node(NodeType.STRING, token.value))
             return
+        elif token.value in ('true', 'false'):
+            current_frame.nodes.append(
+                Node(NodeType.BOOLEAN, token.value == 'true')
+            )
+            return
 
         # otherwise, it's a real keyword
         if token.value == 'if':

@@ -27,6 +27,12 @@ class TestEval(TestCase):
                     V(VT.LIST, [V(VT.STRING, 'y')])
                 ]))
             ),
+            (
+                N(NT.IF, [
+                    N(NT.BOOLEAN, True), N(NT.NUMBER, 4), N(NT.NUMBER, 6),
+                ]),
+                ([], V(VT.NUMBER, 4))
+            ),
             # ('\'();', [
             #     T(TT.QUOTE), T(TT.OPEN_PAREN), T(TT.CLOSE_PAREN), 
             #     T(TT.SEMICOLON),

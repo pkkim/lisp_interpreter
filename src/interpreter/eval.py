@@ -61,6 +61,8 @@ class Environment:
             return Value(ValueType.NUMBER, node.value)
         elif node.variant == NodeType.STRING:
             return Value(ValueType.STRING, node.value)
+        elif node.variant == NodeType.BOOLEAN:
+            return Value(ValueType.BOOLEAN, node.value)
         elif node.variant == NodeType.VARIABLE:
             return self.lookup(node.value)
         elif node.variant == NodeType.BLOCK:
@@ -74,7 +76,7 @@ class Environment:
             fn_value = self.lookup(fn_name)
             (fn_arg_names, fn_body), fn_scopes = fn_value.value
             fn_scopes_count = len(fn_scopes)
-            arg_scope = {k.value: v for k, v in zip(fn_arg_names.value, fn_args)}
+            arg_scope = {k: v for k, v in zip(fn_arg_names, fn_args)}
             self.push_scopes(fn_scopes + [arg_scope])
             return_value = self.eval_node(fn_body)
             new_env.pop_scopes(1)  # arg scope
@@ -84,6 +86,24 @@ class Environment:
             # order of evaluation matters
             list_value = [self.eval_node(v) for v in node.value]
             return Value(ValueType.LIST, list_value)
+        elif node.variant == NodeType.IF:
+            cond, if_true, if_false = node.value
+            cond_result = self.eval_node(cond)
+            if cond_result.type_ != ValueType.BOOLEAN or \
+                    not isinstance(cond_result.value, bool):
+                raise RuntimeError(
+                    f'Condition returned non-bool value: {cond_result}'
+                )
+            return self.eval_node(if_true if cond_result.value else if_false)
+        elif node.variant == NodeType.LAMBDA:
+            args, body = node.value
+            result_args = [arg.value for arg in args]
+            # at lambda creation time, no variables bound; body is totally
+            # unevaluated
+            return Value(ValueType.LAMBDA, ((result_args, body), [{}]))
+        elif node.variant == NodeType.SET:
+            key, value = node.value
+            # TODO pick it up here
         else:
             raise NotImplemented(node.variant)
 
