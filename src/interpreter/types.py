@@ -15,6 +15,7 @@ class TokenType:
     # string; otherwise a STRING is a variable)
     NUMBER = 'number'
     STRING = 'string'
+    OPERATOR = 'operator'
 
 
 @attr.s(auto_attribs=True, slots=True)

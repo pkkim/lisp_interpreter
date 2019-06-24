@@ -119,6 +119,8 @@ class Parser:
             self.frames[-1].nodes.append(Node(NodeType.NUMBER, token.value))
         elif token.variant == TT.STRING:
             self.process_string(token)
+        elif token.variant == TT.OPERATOR:
+            self.frames[-1].nodes.append(Node(NodeType.VARIABLE, token.value))
 
         self.quote_next = quote_next
 

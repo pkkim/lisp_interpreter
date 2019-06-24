@@ -6,9 +6,24 @@ from typing import Deque, Dict, Any, Tuple, List
 import attr
 
 from .types import NodeType, Node, ValueType, Value, LambdaValue
+from . import builtin_handlers
+
 
 class RuntimeError(Exception):
     pass
+
+
+BUILTINS = {
+    # arithmetic
+    '+', '-', '/', '//', '*', '%', '**', 'abs', 
+    # boolean
+    '=', '&&', '||', '!', '<', '>', '<=', '>=',
+    # bitwise
+    '^', '&', '|',
+    # list
+    'cons', 'car', 'cdr', 'set-car', 'set-cdr', 'concat', 'length', 'filter',
+    'map', 'reduce',
+}
 
 
 @attr.s(auto_attribs=True, slots=True)
@@ -54,10 +69,13 @@ class Environment:
         self.scopes = collections.deque(islice(self.scopes, split_index))
         return result
 
-    def eval_function(self, args, body) -> Any:
-        raise NotImplemented
+    def _is_builtin(self, node) -> bool:
+        return node.variant == NodeType.VARIABLE and node.value in BUILTINS
 
-    def eval_node(self, node: Node) -> Any:
+    def _handle_builtin(self, name: str, args: List[Value]) -> Value:
+        return builtin_handlers.handle(name, args)
+
+    def eval_node(self, node: Node, toplevel: bool = False) -> Value:
         if node.variant == NodeType.NUMBER:
             return Value(ValueType.NUMBER, node.value)
         elif node.variant == NodeType.STRING:
@@ -70,12 +88,15 @@ class Environment:
             self.push_empty_scope()
             for statement in node.value:
                 value = self.eval_node(statement)
-            self.pop_scopes(1)
+            if not toplevel:
+                self.pop_scopes(1)
             return value
         elif node.variant == NodeType.APPLY:
-            unevaled_fn, *unevaled_fn_args = node.value
-            fn = self.eval_node(unevaled_fn)
-            fn_args = [self.eval_node(a) for a in unevaled_fn_args]
+            fn_node, *fn_arg_nodes = node.value
+            fn_args = [self.eval_node(a) for a in fn_arg_nodes]
+            if self._is_builtin(fn_node):
+                return self._handle_builtin(fn_node.value, fn_args)
+            fn = self.eval_node(fn_node)
             fn_scopes = fn.value.scopes
             fn_scopes_count = len(fn_scopes)
             arg_scope = {k: v for k, v in zip(fn.value.args, fn_args)}
@@ -109,7 +130,6 @@ class Environment:
             ))
         elif node.variant in (NodeType.SET, NodeType.DEF):
             key_node, value_node = node.value
-            print(f'setting {key_node} to {value_node}')
             assert key_node.variant == NodeType.VARIABLE
             value = self.eval_node(value_node)
             method = self.set if node.variant == NodeType.SET else self.def_

@@ -67,7 +67,16 @@ testdata = [
             ])
         ]),
         V(VT.STRING, 'arg'),
-    )
+    ),
+    (
+        'addition',
+        N(NT.APPLY, [
+            N(NT.VARIABLE, '+'),
+            N(NT.NUMBER, 3),
+            N(NT.NUMBER, 4),
+        ]),
+        V(VT.NUMBER, 7),
+    ),
     # ('\'();', [
     #     T(TT.QUOTE), T(TT.OPEN_PAREN), T(TT.CLOSE_PAREN), 
     #     T(TT.SEMICOLON),
@@ -84,5 +93,4 @@ testdata = [
 def tests(name, test_case, expected):
     environment = Environment()
     actual_result = environment.eval_node(test_case)
-    print('actual scopes', environment.scopes)
-    assert (list(environment.scopes), actual_result) == expected
+    assert actual_result == expected
