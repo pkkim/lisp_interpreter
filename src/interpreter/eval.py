@@ -5,7 +5,7 @@ from typing import Deque, Dict, Any, Tuple, List
 
 import attr
 
-from .types import NodeType, Node, ValueType, Value
+from .types import NodeType, Node, ValueType, Value, LambdaValue
 
 class RuntimeError(Exception):
     pass
@@ -26,6 +26,7 @@ class Environment:
 
     def def_(self, key: str, value: Value) -> None:
         self.scopes[-1][key] = value
+        print(f'After defining {key}: {self.scopes}')
 
     def lookup(self, key: str) -> Value:
         for scope in reversed(self.scopes):
@@ -72,15 +73,18 @@ class Environment:
             self.pop_scopes(1)
             return value
         elif node.variant == NodeType.APPLY:
-            fn_name, *fn_args = node.value
-            fn_value = self.lookup(fn_name)
-            (fn_arg_names, fn_body), fn_scopes = fn_value.value
+            unevaled_fn, *unevaled_fn_args = node.value
+            fn = self.eval_node(unevaled_fn)
+            fn_args = [self.eval_node(a) for a in unevaled_fn_args]
+            fn_scopes = fn.value.scopes
             fn_scopes_count = len(fn_scopes)
-            arg_scope = {k: v for k, v in zip(fn_arg_names, fn_args)}
+            arg_scope = {k: v for k, v in zip(fn.value.args, fn_args)}
             self.push_scopes(fn_scopes + [arg_scope])
-            return_value = self.eval_node(fn_body)
-            new_env.pop_scopes(1)  # arg scope
-            fn_value.value[1] = self.pop_scopes(fn_scopes_count)
+            return_value = self.eval_node(fn.value.body)
+            # arg scope
+            self.pop_scopes(1)
+            # The rest of the scopes
+            fn.value.scopes = self.pop_scopes(fn_scopes_count)
             return return_value
         elif node.variant == NodeType.LIST:
             # order of evaluation matters
@@ -97,13 +101,20 @@ class Environment:
             return self.eval_node(if_true if cond_result.value else if_false)
         elif node.variant == NodeType.LAMBDA:
             args, body = node.value
-            result_args = [arg.value for arg in args]
+            result_args = [arg.value for arg in args.value]
             # at lambda creation time, no variables bound; body is totally
             # unevaluated
-            return Value(ValueType.LAMBDA, ((result_args, body), [{}]))
-        elif node.variant == NodeType.SET:
-            key, value = node.value
-            # TODO pick it up here
+            return Value(ValueType.LAMBDA, LambdaValue(
+                args=result_args, body=body, scopes=[]
+            ))
+        elif node.variant in (NodeType.SET, NodeType.DEF):
+            key_node, value_node = node.value
+            print(f'setting {key_node} to {value_node}')
+            assert key_node.variant == NodeType.VARIABLE
+            value = self.eval_node(value_node)
+            method = self.set if node.variant == NodeType.SET else self.def_
+            method(key_node.value, value)
+            return value
         else:
             raise NotImplemented(node.variant)
 

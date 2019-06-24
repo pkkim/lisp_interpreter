@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any
+from typing import Any, List, Dict
 
 import attr
 
@@ -67,3 +67,11 @@ class Value:
     # In turn, the first argument is the list of arguments, and the second is
     # the body.
     value: Any
+
+
+@attr.s(auto_attribs=True, slots=True)
+class LambdaValue:
+    """`value` of a lambda."""
+    args: List[str]
+    body: Node
+    scopes: List[Dict[str, Value]]
