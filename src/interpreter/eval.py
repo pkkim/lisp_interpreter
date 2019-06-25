@@ -5,7 +5,7 @@ from typing import Deque, Dict, Any, Tuple, List
 
 import attr
 
-from .types import NodeType, Node, ValueType, Value, LambdaValue
+from .types import NodeType, Node, ValueType, Value, LambdaValue, Cons
 from . import builtin_handlers
 
 
@@ -24,6 +24,13 @@ BUILTINS = {
     'cons', 'car', 'cdr', 'set-car', 'set-cdr', 'concat', 'length', 'filter',
     'map', 'reduce',
 }
+
+
+def to_list(values: List[Value]) -> Value:
+    result = Value(ValueType.NIL)
+    for v in reversed(values):
+        result = Value(ValueType.CONS, Cons(car=v, cdr=result))
+    return result
 
 
 @attr.s(auto_attribs=True, slots=True)
@@ -110,7 +117,7 @@ class Environment:
         elif node.variant == NodeType.LIST:
             # order of evaluation matters
             list_value = [self.eval_node(v) for v in node.value]
-            return Value(ValueType.LIST, list_value)
+            return to_list(list_value)
         elif node.variant == NodeType.IF:
             cond, if_true, if_false = node.value
             cond_result = self.eval_node(cond)

@@ -4,7 +4,7 @@ from unittest import TestCase
 from interpreter.eval import Environment
 from interpreter.types import (
     Node as N, NodeType as NT, Value as V, ValueType as VT,
-    LambdaValue,
+    LambdaValue, Cons,
 )
 
 
@@ -21,11 +21,13 @@ testdata = [
             N(NT.NUMBER, 5.5),
             N(NT.LIST, [N(NT.STRING, 'y')]),
         ]),
-        V(VT.LIST, [
-            V(VT.STRING, 'x'),
+        V(VT.CONS, Cons(
+          V(VT.STRING, 'x'),
+          V(VT.CONS, Cons(
             V(VT.NUMBER, 5.5),
-            V(VT.LIST, [V(VT.STRING, 'y')])
-        ])
+            V(VT.CONS, Cons(
+             V(VT.CONS, Cons(
+               V(VT.STRING, 'y')))))))))
     ),
     (
         'if',

@@ -13,7 +13,7 @@ BUILTINS = {
     '^', '&', '|',
     # list
     'cons', 'car', 'cdr', 'set-car', 'set-cdr', 'concat', 'length', 'filter',
-    'map', 'reduce',
+    'map', 'reduce', 'list',
 }
 
 
@@ -118,8 +118,17 @@ def ge(args):
     return args[0].value >= args[1].value
 
 
-
-
+# @handler('cons', ValueType.)
+# @handler('car', ValueType.NUMBER)
+# @handler('cdr', ValueType.NUMBER)
+# @handler('set-car', ValueType.NUMBER)
+# @handler('set-cdr', ValueType.NUMBER)
+# @handler('concat', ValueType.NUMBER)
+# @handler('length', ValueType.NUMBER)
+# @handler('filter', ValueType.NUMBER)
+# @handler('map', ValueType.NUMBER)
+# @handler('reduce', ValueType.NUMBER)
+# @handler('list', ValueType.NUMBER)
 # assert BUILTINS == set(HANDLERS.keys())
 
 

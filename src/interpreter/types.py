@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from typing import Any, List, Dict
 
 import attr
@@ -55,9 +55,10 @@ class Node:
 class ValueType(Enum):
     NUMBER = 'number'
     STRING = 'string'
-    LIST = 'list'
+    CONS = 'cons'
     LAMBDA = 'lambda'
     BOOLEAN = 'boolean'
+    NIL = 'nil'
 
 
 @attr.s(auto_attribs=True, slots=True)
@@ -67,7 +68,7 @@ class Value:
     # and the second is the list of scopes
     # In turn, the first argument is the list of arguments, and the second is
     # the body.
-    value: Any
+    value: Any = None
 
 
 @attr.s(auto_attribs=True, slots=True)
@@ -76,3 +77,9 @@ class LambdaValue:
     args: List[str]
     body: Node
     scopes: List[Dict[str, Value]]
+
+
+@attr.s(auto_attribs=True, slots=True)
+class Cons:
+    car: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
+    cdr: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
