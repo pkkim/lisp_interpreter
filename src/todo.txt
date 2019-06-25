@@ -1,2 +1,1 @@
-Support cons, car, cdr -- This doesn't seem possible using the primitives that
-I've created so far
+Iterator over cons cells that validates that it's a list

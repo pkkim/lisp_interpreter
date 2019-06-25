@@ -12,7 +12,7 @@ BUILTINS = {
     # bitwise
     '^', '&', '|',
     # list
-    'cons', 'car', 'cdr', 'set-car', 'set-cdr', 'concat', 'length', 'filter',
+    'cons', 'car', 'cdr', 'set_car', 'set_cdr', 'concat', 'length', 'filter',
     'map', 'reduce', 'list',
 }
 
@@ -20,7 +20,7 @@ BUILTINS = {
 HANDLERS = {}
 
 
-def handler(name, value_type, minimum=None, maximum=None, exact=None):
+def handler(name, value_type=None, minimum=None, maximum=None, exact=None):
     def wrapped(f):
         @functools.wraps(f)
         def g(args):
@@ -31,7 +31,10 @@ def handler(name, value_type, minimum=None, maximum=None, exact=None):
                 assert argc >= minimum
             if maximum is not None:
                 assert argc <= maximum
-            return Value(value_type, f(args))
+
+            result = f(args)
+            return Value(value_type, result) if value_type else result
+
         assert name in BUILTINS
         HANDLERS[name] = g
         return g
@@ -118,12 +121,52 @@ def ge(args):
     return args[0].value >= args[1].value
 
 
-# @handler('cons', ValueType.)
-# @handler('car', ValueType.NUMBER)
-# @handler('cdr', ValueType.NUMBER)
-# @handler('set-car', ValueType.NUMBER)
-# @handler('set-cdr', ValueType.NUMBER)
-# @handler('concat', ValueType.NUMBER)
+@handler('cons', exact=2)
+def cons(args):
+    return Cons(args[0], args[1])
+
+
+@handler('car', exact=1)
+def car(args):
+    return args[0].car
+
+
+@handler('cdr', exact=1)
+def car(args):
+    return args[0].cdr
+
+
+@handler('set_car', exact=2)
+def set_car(args):
+    args[0].car = args[1]
+    return args[1]
+
+
+@handler('set_cdr')
+def set_cdr(args):
+    args[0].cdr = args[1]
+    return args[1]
+
+
+@handler('concat')
+def concat(args):
+    if all(l == Value(ValueType.NIL) for l in args):
+        return Value(ValueType.NIL)
+
+    result = Value(ValueType.CONS, Cons())
+    result_ptr = result
+    for l in args:
+        current = l
+        while current != Value(ValueType.NIL):
+            result.value.car = current.value.car
+            assert current.cdr.type_ in (ValueType.NIL, ValueType.CONS), (
+                f'Argument to concat is not a list: {l}'
+            )
+            current = current.cdr
+            result_ptr = result.cdr
+    return result
+
+
 # @handler('length', ValueType.NUMBER)
 # @handler('filter', ValueType.NUMBER)
 # @handler('map', ValueType.NUMBER)
