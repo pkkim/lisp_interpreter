@@ -57,13 +57,13 @@ def div(args):
 
 
 @handler('//', ValueType.NUMBER, exact=2)
-def div_int(args):
+def floor_div(args):
     return args[0].value // args[1].value
 
 
 @handler('*', ValueType.NUMBER)
 def mul(args):
-    return functools.reduce(lambda x, y: x * y, (a.value for a in args))
+    return functools.reduce(lambda x, y: x * y, (a.value for a in args), 1)
 
 @handler('%', ValueType.NUMBER, exact=2)
 def mod(args):
@@ -76,10 +76,12 @@ def pow(args):
 
 
 @handler('abs', ValueType.NUMBER, exact=1)
-def abs(args):
+def abs_(args):
     return abs(args[0].value)
 
 
+# TODO these boolean functions implicitly encode Python behavior. Need to write
+# custom handling.
 @handler('=', ValueType.BOOLEAN, minimum=2)
 def eq(args):
     first, *rest = args
