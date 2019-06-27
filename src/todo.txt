@@ -1,1 +1,2 @@
-Iterator over cons cells that validates that it's a list
+Iterator over cons cells that validates that it's a list (just for 
+implementing the interpreter)

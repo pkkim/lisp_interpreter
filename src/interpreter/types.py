@@ -28,7 +28,7 @@ class NodeType(Enum):
     NUMBER = 'number'
     VARIABLE = 'variable'
     STRING = 'string'
-    BOOLEAN = 'boolean'  # only 'true' and 'false'
+    BOOLEAN = 'boolean'  # only 'true' and 'false
 
     # Not given by keywords, need to be figured out
     BLOCK = 'block'
@@ -61,6 +61,10 @@ class ValueType(Enum):
     NIL = 'nil'
 
 
+class LispTypeError(Exception):
+    pass
+
+
 @attr.s(auto_attribs=True, slots=True)
 class Value:
     type_: ValueType
@@ -69,6 +73,66 @@ class Value:
     # In turn, the first argument is the list of arguments, and the second is
     # the body.
     value: Any = None
+
+    def __eq__(self, other) -> bool:
+        if self.type_ != other.type_:
+            return False
+
+        if self.type_ in {
+            ValueType.NIL,
+            ValueType.NUMBER,
+            ValueType.STRING,
+            ValueType.BOOLEAN,
+        }:
+            return self.value == other.value
+        elif self.type_ in {ValueType.CONS, ValueType.LAMBDA}:
+            return self is other
+        else:
+            raise NotImplemented(f'Equality not defined for {self.type_}.')
+
+    def __nonzero__(self) -> bool:
+        if self.type_ == ValueType.NUMBER:
+            return self.value != 0
+        elif self.type_ == ValueType.STRING:
+            return self.value != ''
+        elif self.type_ == ValueType.BOOLEAN:
+            return self.value
+        elif self.type_ in (ValueType.CONS, ValueType.BOOLEAN):
+            return True
+        elif self.type_ == ValueType.NIL:
+            return False
+        else:
+            raise NotImplemented(f'Truthiness not defined for {self.type_}.')
+
+    def _value_comparison(f):
+        def wrapped(v1, v2):
+            if v1.type_ != v2.type_:
+                raise LispTypeError(
+                    f'Args to {f.__name__} must have same type but got: '
+                    f'{v1}, {v2}' 
+                )
+            elif v1.type_ in (ValueType.CONS, ValueType.BOOLEAN):
+                raise LispTypeError(
+                    f'Cannot compare values of type {v1.type_}.'
+                )
+            return f(v1, v2)
+        return wrapped
+
+    @_value_comparison
+    def __lt__(self, other):
+        return super().__lt__(self, other)
+
+    @_value_comparison
+    def __lte__(self, other):
+        return super().__le__(self, other)
+
+    @_value_comparison
+    def __gt__(self, other):
+        return super().__gt__(self, other)
+
+    @_value_comparison
+    def __gte__(self, other):
+        return super().__gte__(self, other)
 
 
 @attr.s(auto_attribs=True, slots=True)

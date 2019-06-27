@@ -80,27 +80,25 @@ def abs_(args):
     return abs(args[0].value)
 
 
-# TODO these boolean functions implicitly encode Python behavior. Need to write
-# custom handling.
 @handler('=', ValueType.BOOLEAN, minimum=2)
 def eq(args):
     first, *rest = args
-    return all(first == other for other in rest)
+    return all(first.equal(other) for other in rest)
 
 
 @handler('&&', ValueType.BOOLEAN, minimum=2)
 def and_bool(args):
-    return all(a.value for a in args)
+    return all(a for a in args)
 
 
 @handler('||', ValueType.BOOLEAN, minimum=2)
 def or_bool(args):
-    return any(a.value for a in args)
+    return any(a for a in args)
 
 
 @handler('!', ValueType.BOOLEAN, exact=1)
 def not_bool(args):
-    return not args[0].value
+    return not args[0]
 
 
 @handler('<', ValueType.BOOLEAN, exact=2)
