@@ -1,5 +1,4 @@
 import pytest
-from unittest import TestCase
 
 from interpreter.eval import Environment
 from interpreter.types import (

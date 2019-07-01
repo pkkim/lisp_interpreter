@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
 import attr
 
@@ -134,6 +134,28 @@ class Value:
     def __gte__(self, other):
         return super().__gte__(self, other)
 
+    @classmethod
+    def list_to_cons(cls, values: List['Value']) -> 'Value':
+        if not values:
+            return cls(ValueType.NIL)
+        result_cons = Cons()
+        curr = result_cons
+        for v in values[:-1]:
+            curr.car = v
+            curr.cdr = cls(ValueType.CONS, Cons())
+            curr = curr.cdr.value
+        curr.car = values[-1]
+        return cls(ValueType.CONS, result_cons)
+
+    def __iter__(self):
+        print('start __iter__')
+        if self.type_ in (ValueType.CONS, ValueType.NIL):
+            return Cons._Iterator(self)
+        raise ValueError(
+            f'Iteration only allowed on CONS and NIL values, but got '
+            f'{self.type_}'
+        )
+
 
 @attr.s(auto_attribs=True, slots=True)
 class LambdaValue:
@@ -147,3 +169,26 @@ class LambdaValue:
 class Cons:
     car: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
     cdr: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
+
+    @attr.s(auto_attribs=True, slots=True)
+    class _Iterator:
+        cons: Value
+        idx: int = 0
+        current: Optional[Value] = None
+
+        def __attrs_post_init__(self):
+            self.current = self.cons
+
+        def __next__(self):
+            if self.current.type_ == ValueType.NIL:
+                raise StopIteration
+            elif self.current.type_ == ValueType.CONS:
+                result = self.current
+                self.current = self.current.value.cdr
+                self.idx += 1
+                print(self.current)
+                return result
+            # todo error handling??
+            raise ValueError(
+                f'Received non-cons at position {idx}: {self.current}'
+            )

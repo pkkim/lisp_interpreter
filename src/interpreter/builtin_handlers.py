@@ -156,18 +156,12 @@ def concat(args):
     result = Value(ValueType.CONS, Cons())
     result_ptr = result
     for l in args:
-        current = l
-        while current != Value(ValueType.NIL):
-            result.value.car = current.value.car
-            assert current.cdr.type_ in (ValueType.NIL, ValueType.CONS), (
-                f'Argument to concat is not a list: {l}'
-            )
-            current = current.cdr
-            result_ptr = result.cdr
+        for cons in l:
+            result.value.car == cons.car
     return result
 
 
-# @handler('length', ValueType.NUMBER)
+# @handler('length', ValueType.NUMBER, exact=1)
 # @handler('filter', ValueType.NUMBER)
 # @handler('map', ValueType.NUMBER)
 # @handler('reduce', ValueType.NUMBER)
