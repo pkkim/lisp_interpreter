@@ -14,8 +14,6 @@ list_testdata = [
 @pytest.mark.parametrize('op,test_case', list_testdata)
 def test_list(op, test_case):
     cons = V.list_to_cons(test_case)
-    for x in cons:
-        print('x:', x)
-    # for from_cons, from_list in zip(cons, test_case):
-    #     print('point 2')
-    #     assert from_cons == from_list
+
+    for from_cons, from_list in zip(cons, test_case):
+        assert from_cons.value.car == from_list, (from_cons, from_list)

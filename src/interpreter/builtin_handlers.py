@@ -8,7 +8,7 @@ BUILTINS = {
     # '/' is true division, '//' is floor division
     '+', '-', '/', '//', '*', '%', '**', 'abs',
     # boolean
-    '=', '&&', '||', '!', '<', '>', '<=', '>=',
+    '=', '!=', '&&', '||', '!', '<', '>', '<=', '>=',
     # bitwise
     '^', '&', '|',
     # list
@@ -83,7 +83,13 @@ def abs_(args):
 @handler('=', ValueType.BOOLEAN, minimum=2)
 def eq(args):
     first, *rest = args
-    return all(first.equal(other) for other in rest)
+    return all(first == other for other in rest)
+
+
+@handler('!=', ValueType.BOOLEAN, minimum=2)
+def eq(args):
+    first, *rest = args
+    return any(first != other for other in rest)
 
 
 @handler('&&', ValueType.BOOLEAN, minimum=2)

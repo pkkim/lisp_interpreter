@@ -28,3 +28,15 @@ def test_numerical(op, test_case, expected):
     args = [V(VT.NUMBER, a) for a in test_case]
     actual_result = handle(op, args)
     assert actual_result == V(VT.NUMBER, expected)
+
+
+boolean_testdata = [
+    ('=', [V(VT.NUMBER, 5), V(VT.NUMBER, 5), V(VT.NUMBER, 5)], True),
+    ('=', [V(VT.BOOLEAN, True), V(VT.NUMBER, 1)], False),
+    ('!=', [V(VT.BOOLEAN, True), V(VT.BOOLEAN, False)], True),
+]
+
+
+@pytest.mark.parametrize('op,test_case,expected', boolean_testdata)
+def test_boolean(op, test_case, expected):
+    assert handle(op, test_case) == V(VT.BOOLEAN, expected)
