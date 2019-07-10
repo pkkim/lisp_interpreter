@@ -1,6 +1,6 @@
 import functools
 
-from .types import Value, ValueType
+from .types import Value, ValueType, Cons
 
 
 BUILTINS = {
@@ -9,11 +9,10 @@ BUILTINS = {
     '+', '-', '/', '//', '*', '%', '**', 'abs',
     # boolean
     '=', '!=', '&&', '||', '!', '<', '>', '<=', '>=',
-    # bitwise
-    '^', '&', '|',
+    # # bitwise
+    # '^', '&', '|',
     # list
-    'cons', 'car', 'cdr', 'set_car', 'set_cdr', 'concat', 'length', 'filter',
-    'map', 'reduce', 'list',
+    'cons', 'car', 'cdr', 'set_car', 'set_cdr', 'concat', 'length', 'list',
 }
 
 
@@ -92,12 +91,12 @@ def eq(args):
     return any(first != other for other in rest)
 
 
-@handler('&&', ValueType.BOOLEAN, minimum=2)
+@handler('&&', ValueType.BOOLEAN)
 def and_bool(args):
     return all(a for a in args)
 
 
-@handler('||', ValueType.BOOLEAN, minimum=2)
+@handler('||', ValueType.BOOLEAN)
 def or_bool(args):
     return any(a for a in args)
 
@@ -127,52 +126,62 @@ def ge(args):
     return args[0].value >= args[1].value
 
 
-@handler('cons', exact=2)
+@handler('cons', ValueType.CONS, exact=2)
 def cons(args):
     return Cons(args[0], args[1])
 
 
 @handler('car', exact=1)
 def car(args):
-    return args[0].car
+    return args[0].value.car
 
 
 @handler('cdr', exact=1)
 def car(args):
-    return args[0].cdr
+    return args[0].value.cdr
 
 
 @handler('set_car', exact=2)
 def set_car(args):
-    args[0].car = args[1]
+    args[0].value.car = args[1]
     return args[1]
 
 
 @handler('set_cdr')
 def set_cdr(args):
-    args[0].cdr = args[1]
+    args[0].value.cdr = args[1]
     return args[1]
 
 
 @handler('concat')
 def concat(args):
-    if all(l == Value(ValueType.NIL) for l in args):
-        return Value(ValueType.NIL)
-
-    result = Value(ValueType.CONS, Cons())
+    result = Value(ValueType.NIL)
     result_ptr = result
     for l in args:
         for cons in l:
-            result.value.car == cons.car
+            result_ptr.type_ = ValueType.CONS
+            result_ptr.value = Cons(car=cons.value.car)
+            result_ptr = result_ptr.value.cdr
     return result
 
 
-# @handler('length', ValueType.NUMBER, exact=1)
-# @handler('filter', ValueType.NUMBER)
-# @handler('map', ValueType.NUMBER)
-# @handler('reduce', ValueType.NUMBER)
-# @handler('list', ValueType.NUMBER)
-# assert BUILTINS == set(HANDLERS.keys())
+@handler('length', ValueType.NUMBER, exact=1)
+def length(args):
+    return sum(1 for cons in args[0])
+
+
+@handler('list')
+def _list(args):
+    result = Value(ValueType.NIL)
+    result_ptr = result
+    for v in args:
+        result_ptr.type_ = ValueType.CONS
+        result_ptr.value = Cons(car=v)
+        result_ptr = result_ptr.value.cdr
+    return result
+
+
+assert BUILTINS == set(HANDLERS.keys()), BUILTINS - set(HANDLERS.keys())
 
 
 def handle(name: str, args) -> Value:

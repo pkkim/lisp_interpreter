@@ -90,7 +90,7 @@ class Value:
         else:
             raise NotImplemented(f'Equality not defined for {self.type_}.')
 
-    def __nonzero__(self) -> bool:
+    def __bool__(self) -> bool:
         if self.type_ == ValueType.NUMBER:
             return self.value != 0
         elif self.type_ == ValueType.STRING:
@@ -148,7 +148,6 @@ class Value:
         return cls(ValueType.CONS, result_cons)
 
     def __iter__(self):
-        print('start __iter__')
         if self.type_ in (ValueType.CONS, ValueType.NIL):
             return Cons._Iterator(self)
         raise ValueError(
@@ -186,7 +185,6 @@ class Cons:
                 result = self.current
                 self.current = self.current.value.cdr
                 self.idx += 1
-                print(self.current)
                 return result
             # todo error handling??
             raise ValueError(

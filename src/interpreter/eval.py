@@ -48,7 +48,6 @@ class Environment:
 
     def def_(self, key: str, value: Value) -> None:
         self.scopes[-1][key] = value
-        print(f'After defining {key}: {self.scopes}')
 
     def lookup(self, key: str) -> Value:
         for scope in reversed(self.scopes):
