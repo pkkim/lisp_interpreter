@@ -1,6 +1,6 @@
 import pytest
 
-from interpreter.eval import Environment
+from interpreter.evaluator import Environment
 from interpreter.types import (
     Node as N, NodeType as NT, Value as V, ValueType as VT,
     LambdaValue, Cons,

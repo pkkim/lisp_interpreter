@@ -120,7 +120,8 @@ class Parser:
         elif token.variant == TT.STRING:
             self.process_string(token)
         elif token.variant == TT.OPERATOR:
-            self.frames[-1].nodes.append(Node(NodeType.VARIABLE, token.value))
+            node = Node(NodeType.VARIABLE, token.value)
+            self.frames[-1].nodes.append(node)
 
         self.quote_next = quote_next
 

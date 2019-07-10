@@ -28,7 +28,7 @@ class InvalidToken(Exception):
 def _operator(s: str):
     if not all(c in operator_characters for c in s):
         return None
-    return Token(TokenType.OPERATOR, state)
+    return s
 
 
 def _number(s: str):

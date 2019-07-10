@@ -13,19 +13,6 @@ class RuntimeError(Exception):
     pass
 
 
-BUILTINS = {
-    # arithmetic
-    '+', '-', '/', '//', '*', '%', '**', 'abs', 
-    # boolean
-    '=', '&&', '||', '!', '<', '>', '<=', '>=',
-    # bitwise
-    '^', '&', '|',
-    # list
-    'cons', 'car', 'cdr', 'set-car', 'set-cdr', 'concat', 'length', 'filter',
-    'map', 'reduce',
-}
-
-
 def to_list(values: List[Value]) -> Value:
     result = Value(ValueType.NIL)
     for v in reversed(values):
@@ -64,24 +51,25 @@ class Environment:
         return self.__class__(copied_scopes)
 
     def push_empty_scope(self) -> None:
-        self.push_scopes([{}])
+        self.push_scope({})
 
-    def push_scopes(self, contents: List[Dict[str, Value]] = None) -> None:
-        self.scopes.extend(contents)
+    def push_scope(self, contents: Dict[str, Value]) -> None:
+        self.scopes.append(contents)
 
-    def pop_scopes(self, count) -> None:
-        split_index = len(self.scopes) - count
-        result = collections.deque(islice(self.scopes, None, split_index))
-        self.scopes = collections.deque(islice(self.scopes, split_index))
-        return result
+    def pop_scope(self) -> Dict[str, Any]:
+        return self.scopes.pop()
 
     def _is_builtin(self, node) -> bool:
-        return node.variant == NodeType.VARIABLE and node.value in BUILTINS
+        return (node.variant == NodeType.VARIABLE and
+                node.value in builtin_handlers.BUILTINS)
 
     def _handle_builtin(self, name: str, args: List[Value]) -> Value:
         return builtin_handlers.handle(name, args)
 
-    def eval_node(self, node: Node, toplevel: bool = False) -> Value:
+    def begin_toplevel(self):
+        self.push_empty_scope()
+
+    def eval_node(self, node: Node) -> Value:
         if node.variant == NodeType.NUMBER:
             return Value(ValueType.NUMBER, node.value)
         elif node.variant == NodeType.STRING:
@@ -94,8 +82,7 @@ class Environment:
             self.push_empty_scope()
             for statement in node.value:
                 value = self.eval_node(statement)
-            if not toplevel:
-                self.pop_scopes(1)
+            self.pop_scope()
             return value
         elif node.variant == NodeType.APPLY:
             fn_node, *fn_arg_nodes = node.value
@@ -103,15 +90,18 @@ class Environment:
             if self._is_builtin(fn_node):
                 return self._handle_builtin(fn_node.value, fn_args)
             fn = self.eval_node(fn_node)
-            fn_scopes = fn.value.scopes
-            fn_scopes_count = len(fn_scopes)
+            fn_scope = fn.value.scope
             arg_scope = {k: v for k, v in zip(fn.value.args, fn_args)}
-            self.push_scopes(fn_scopes + [arg_scope])
+            self.push_scope(fn_scope)
+            self.push_scope(arg_scope)
             return_value = self.eval_node(fn.value.body)
-            # arg scope
-            self.pop_scopes(1)
-            # The rest of the scopes
-            fn.value.scopes = self.pop_scopes(fn_scopes_count)
+            # Set new scope on function
+            updated_arg_scope = self.pop_scope()
+            if return_value.type_ == ValueType.LAMBDA:
+                return_value.value.scope = updated_arg_scope
+            updated_fn_scope = self.pop_scope()
+            fn.value.scope = updated_fn_scope
+            
             return return_value
         elif node.variant == NodeType.LIST:
             # order of evaluation matters
@@ -132,7 +122,7 @@ class Environment:
             # at lambda creation time, no variables bound; body is totally
             # unevaluated
             return Value(ValueType.LAMBDA, LambdaValue(
-                args=result_args, body=body, scopes=[]
+                args=result_args, body=body, scope={}
             ))
         elif node.variant in (NodeType.SET, NodeType.DEF):
             key_node, value_node = node.value

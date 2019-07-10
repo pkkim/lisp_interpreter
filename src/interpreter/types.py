@@ -69,7 +69,7 @@ class LispTypeError(Exception):
 class Value:
     type_: ValueType
     # for LAMBDA, it's a tuple with first arg the representation of the lambda,
-    # and the second is the list of scopes
+    # and the second is the local scope
     # In turn, the first argument is the list of arguments, and the second is
     # the body.
     value: Any = None
@@ -161,7 +161,11 @@ class LambdaValue:
     """`value` of a lambda."""
     args: List[str]
     body: Node
-    scopes: List[Dict[str, Value]]
+    scope: Dict[str, Value]
+
+    def __str__(self):
+        arg_str = ' '.join(self.args)
+        return f'<lambda: ({arg_str})>'
 
 
 @attr.s(auto_attribs=True, slots=True)
