@@ -120,16 +120,13 @@ class Parser:
         elif token.variant == TT.STRING:
             self.process_string(token)
         elif token.variant == TT.OPERATOR:
-            node = Node(NodeType.VARIABLE, token.value)
-            self.frames[-1].nodes.append(node)
+            self.frames[-1].nodes.append(Node(NodeType.VARIABLE, token.value))
 
         self.quote_next = quote_next
 
-    def parse(self, tokens: List[T]):
+    def parse(self, tokens: List[T]) -> List[Node]:
         for token in tokens:
             self.process_token(token)
         if len(self.frames) > 1:
             raise ParseError('Too many left parentheses')
-        elif len(self.current_frame().nodes) > 1:
-            raise ParseError('More than one sexp')
-        return self.current_frame().nodes[0]
+        return self.current_frame().nodes
