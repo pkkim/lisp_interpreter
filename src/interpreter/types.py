@@ -173,6 +173,9 @@ class Cons:
     car: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
     cdr: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
 
+    def __str__(self):
+        return f'({self.car.value} : {self.cdr.value})'
+
     @attr.s(auto_attribs=True, slots=True)
     class _Iterator:
         cons: Value
