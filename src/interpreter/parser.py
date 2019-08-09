@@ -28,18 +28,6 @@ class Parser:
     def current_frame(self) -> _Frame:
         return self.frames[-1]
 
-    @staticmethod
-    def validate_length(
-        value: List[Any],
-        node_type: NodeType,
-        expected_length: Optional[int],
-    ) -> None:
-        if expected_length is not None and len(value) != expected_length:
-            raise ParseError(
-                f'{node_type} must have {expected_length} items, but got: '
-                f'{value}'
-            )
-
     def finalize_current_frame(self) -> Node:
         frame = self.current_frame()
         value = frame.nodes
@@ -59,7 +47,6 @@ class Parser:
             node_type = NodeType.APPLY
             expected_length = None
 
-        self.validate_length(value, node_type, expected_length)
         return Node(node_type, value)
 
     def process_string(self, token: T) -> None:
@@ -93,15 +80,7 @@ class Parser:
     def process_token(self, token: T) -> None:
         quote_next = False
         if token.variant == TT.OPEN_PAREN:
-            quoted = (
-                # the previous token was a quote
-                self.quote_next or
-                # the current environment is quoted
-                self.current_frame().quoted or
-                # it's the first argument to a lambda
-                (self.current_frame().variant == NodeType.LAMBDA and
-                    len(self.current_frame().nodes) == 0)
-            )
+            quoted = self.quote_next
             self.frames.append(_Frame(NodeType.LIST if quoted else None))
         elif token.variant == TT.CLOSE_PAREN:
             node = self.finalize_current_frame()

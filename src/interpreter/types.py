@@ -26,24 +26,9 @@ class Token:
 
 class NodeType(Enum):
     NUMBER = 'number'
-    VARIABLE = 'variable'
-    STRING = 'string'
-    BOOLEAN = 'boolean'  # only 'true' and 'false
-
-    # Not given by keywords, need to be figured out
-    BLOCK = 'block'
-    APPLY = 'apply'
-    LIST = 'list'  # for quoted lists or the first arg to lambda
-
-    # keywords
-    IF = 'if'
-    LAMBDA = 'lambda'
-    SET = 'set'
-    DEF = 'def'
-
-    # builtins should only be distinguished at evaluation (need to prevent
-    # assigning to them)
-    # e.g. nil, car, cdr, cons, list
+    STRING = 'string'  # treated as a variable if inside a quote block
+    BOOLEAN = 'boolean'  # only 'true' and 'false'
+    LIST = 'list'
 
 
 @attr.s(auto_attribs=True, slots=True)
@@ -59,6 +44,7 @@ class ValueType(Enum):
     LAMBDA = 'lambda'
     BOOLEAN = 'boolean'
     NIL = 'nil'
+    QUOTED = 'quoted'
 
 
 class LispTypeError(Exception):

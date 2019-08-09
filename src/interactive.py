@@ -2,15 +2,7 @@ import readline
 
 import click
 
-from interpreter import lexer, parser, evaluator
-
-
-def run_code(env, code):
-    lexed = lexer.lex(code)
-    nodes = parser.Parser().parse(lexed)
-    for node in nodes:
-        value = env.eval_node(node)
-    return value
+from interpreter import lexer, parser, evaluator, pipeline
 
 
 def run_repl(environment):
@@ -19,15 +11,15 @@ def run_repl(environment):
         if not code:
             continue
         try:
-            value = run_code(environment, code)
+            value = pipeline.run_code(environment, code)
             print(value.value)
         except Exception as e:
-            print('error:', e)
+            print(f'error: {e.__class__}', e)
 
 
 @click.command()
 @click.option('--builtins', type=click.File('r'),
-        default='src/interpreter/builtins.lisp')
+        default=None)
 def main(builtins):
     env = evaluator.Environment()
     env.begin_toplevel()
