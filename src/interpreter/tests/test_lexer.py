@@ -25,7 +25,7 @@ def test_lexer(test_case, expected):
 
 
 desugar_testdata = [
-    ("(a; b; '(c 4); 'd)", TokenTree([
+    ("(a; b; '(c 4); 'd)", [TokenTree([
         T(TT.STRING, 'block'),
         T(TT.STRING, 'a'),
         T(TT.STRING, 'b'),
@@ -40,7 +40,12 @@ desugar_testdata = [
             T(TT.STRING, 'quote'),
             T(TT.STRING, 'd'),
         ])
-    ])),
+    ])]),
+    ("d f", [T(TT.STRING, 'd'), T(TT.STRING, 'f')]),
+    ("''x y", [TokenTree(
+        [T(TT.STRING, 'quote'), TokenTree(
+            [T(TT.STRING, 'quote'), T(TT.STRING, 'x')]
+        )]), T(TT.STRING, 'y')]),
 ]
 
 

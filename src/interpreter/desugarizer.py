@@ -1,18 +1,13 @@
 import collections
-from typing import Optional, List, Union
+from typing import Optional, List
 
 import attr
 
-from .types import Token, TokenType
+from .types import Token, TokenType, TokenTree
 
 
-@attr.s(auto_attribs=True, slots=True)
-class TokenTree:
-    value: List[Union['TokenTree', Token]] = attr.ib(factory=lambda: [])
-
-
-def desugar(tokens: List[Token]) -> TokenTree:
-    result = TokenTree()
+def desugar(tokens: List[Token]) -> List[TokenTree]:
+    result = TokenTree()  # actually the value of this will be returned
     curr = result
     parents = collections.deque()
     for token in tokens:
@@ -32,12 +27,10 @@ def desugar(tokens: List[Token]) -> TokenTree:
     while q:
         # TODO should catch syntax errors here
         curr = q.pop()
-        print('curr:', curr)
 
         # handle semicolons
         if any(isinstance(t, Token) and t.variant == TokenType.SEMICOLON
                 for t in curr.value):
-            print('in if')
             new_value = []
             new_value.append(Token(TokenType.STRING, 'block'))
             for t in curr.value:
@@ -48,25 +41,24 @@ def desugar(tokens: List[Token]) -> TokenTree:
         # handle quoting
         if any(isinstance(t, Token) and t.variant == TokenType.QUOTE
                 for t in curr.value):
+            sugar_level = 0
             new_value = []
-            i = 0
-            while i < len(curr.value):
-                t = curr.value[i]
+            for t in curr.value:
                 if isinstance(t, Token) and t.variant == TokenType.QUOTE:
-                    replacement = TokenTree(
-                        [Token(TokenType.STRING, 'quote'), curr.value[i+1]],
-                    )
-                    new_value.append(replacement)
-                    i += 1
+                    sugar_level += 1
                 else:
-                    new_value.append(t)
-                i += 1
+                    to_append = t
+                    for _ in range(sugar_level):
+                        to_append = TokenTree(
+                            [Token(TokenType.STRING, 'quote'), to_append]
+                        )
+                    new_value.append(to_append)
+                    sugar_level = 0
             curr.value = new_value
 
         for tr in curr.value:
             if isinstance(tr, TokenTree):
                 q.append(tr)
 
-    assert len(result.value) == 1
-    return result.value[0]
+    return result.value
 
