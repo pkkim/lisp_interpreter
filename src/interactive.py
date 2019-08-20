@@ -1,8 +1,9 @@
 import readline
+import traceback
 
 import click
 
-from interpreter import lexer, parser, evaluator, pipeline
+from interpreter import evaluator, pipeline
 
 
 def run_repl(environment):
@@ -12,9 +13,9 @@ def run_repl(environment):
             continue
         try:
             value = pipeline.run_code(environment, code)
-            print(value.value)
+            print('->', value.value)
         except Exception as e:
-            print(f'error: {e.__class__}', e)
+            traceback.print_exc()
 
 
 @click.command()

@@ -42,6 +42,7 @@ def handler(name, value_type=None, minimum=None, maximum=None, exact=None):
 
 @handler('+', ValueType.NUMBER)
 def plus(args):
+    print(args)
     return sum(a.value for a in args)
 
 
