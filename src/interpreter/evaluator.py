@@ -4,12 +4,8 @@ from typing import Deque, Dict, Any, Tuple, List
 
 import attr
 
-from .types import ValueType, Value, LambdaValue, Cons
+from .types import ValueType, Value, LambdaValue, Cons, RuntimeError
 from . import builtin_handlers
-
-
-class RuntimeError(Exception):
-    pass
 
 
 def _assert(condition, message):
@@ -34,6 +30,9 @@ def to_list(values: List[Value]) -> Value:
 KEYWORDS = {'block', 'if', 'list', 'lambda', 'set', 'def', 'eval'}
 
 
+KEYWORD_VALUES = {'nil'}
+
+
 @attr.s(auto_attribs=True, slots=True)
 class Environment:
     scopes: Deque[Dict[str, Value]] = attr.ib(factory=collections.deque)
@@ -43,9 +42,7 @@ class Environment:
             if key in scope:
                 scope[key] = value
                 return
-        raise RuntimeError(
-            f'Variable {key} not defined in scopes: {self.scopes}',
-        )
+        raise RuntimeError(f'Variable {key} not defined')
 
     def def_(self, key: str, value: Value) -> None:
         self.scopes[-1][key] = value
@@ -54,9 +51,7 @@ class Environment:
         for scope in reversed(self.scopes):
             if key in scope:
                 return scope[key]
-        raise RuntimeError(
-            f'Variable {key} not defined in scopes: {self.scopes}',
-        )
+        raise RuntimeError(f'Variable {key} not defined')
 
     def push_empty_scope(self) -> None:
         self.push_scope({})
@@ -95,7 +90,8 @@ class Environment:
         elif name == 'list':
             # order of evaluation matters
             list_value = [self.eval_2(v.value.car) for v in args]
-            return to_list(list_value)
+            result = to_list(list_value)
+            return result
         elif name == 'lambda':
             _assert_arity('lambda', args, 2)
             fn_args, body = args
@@ -153,22 +149,22 @@ class Environment:
                 _assert_arity('quote', fn_args, 1)
                 return node
 
-            # TODO if it's a keyword, we can't just indiscriminately eval all
-            # args -- for example, the first argument of lambda or def.
-            # need to handle this in the keyword handlers themselves.
-            # not in the builtins thankfully
+            # Each keyword requires its arguments to be evaluated differently,
+            # so they must be passed to the keyword handlers unevaluated.
             if self._is_keyword(fn_node):
                 return self._handle_keyword(fn_node.value, fn_args)
 
+            # From here, treat the args as a list, because the Cons cell is a
+            # bear to work with...
             args = [self.eval_2(arg.value.car) for arg in fn_args]
             if self._is_builtin(fn_node):
                 return self._handle_builtin(fn_node.value, args)
             else:
                 fn = self.eval_2(fn_node)
-                # it's either a string or a lambda value
-
                 fn_scope = fn.value.scope
-                arg_scope = {k: v for k, v in zip(fn.value.args, args)}
+                arg_scope = {
+                    k.value.car.value: v for k, v in zip(fn.value.args, args)
+                }
                 self.push_scope(fn_scope)
                 self.push_scope(arg_scope)
                 return_value = self.eval_2(fn.value.body)

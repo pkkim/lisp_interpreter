@@ -53,6 +53,5 @@ desugar_testdata = [
 def test_desugar(test_case, expected):
     lexed = lex(test_case)
     actual = desugar(lexed)
-    print(actual)
     assert actual == expected
 

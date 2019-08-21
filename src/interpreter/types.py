@@ -39,10 +39,13 @@ class ValueType(Enum):
     # Non-node types
     LAMBDA = 'lambda'
     NIL = 'nil'
-    QUOTED = 'quoted'
 
 
 class LispTypeError(Exception):
+    pass
+
+
+class RuntimeError(Exception):
     pass
 
 
@@ -142,6 +145,26 @@ class Value:
             result += 1
         return result
 
+    def __str__(self):
+        if self.variant in {
+            ValueType.NUMBER,
+            ValueType.STRING,
+            ValueType.BOOLEAN,
+            # these two are already defined elsewhere
+            ValueType.CONS,
+            ValueType.LAMBDA,
+        }:
+            return str(self.value)
+        elif self.variant == ValueType.NIL:
+            return 'nil'
+        else:
+            raise ValueError(f'Unknown variant: {self.variant}')
+
+
+    LAMBDA = 'lambda'
+    NIL = 'nil'
+    QUOTED = 'quoted'
+
 
 @attr.s(auto_attribs=True, slots=True)
 class LambdaValue:
@@ -161,7 +184,8 @@ class Cons:
     cdr: Any = attr.ib(factory=lambda: Value(ValueType.NIL))
 
     def __str__(self):
-        return f'({self.car.value} : {self.cdr.value})'
+        cdr_to_str = self.cdr if self.cdr.variant else self.cdr.value
+        return f'({self.car.value} : {cdr_to_str})'
 
     @attr.s(auto_attribs=True, slots=True)
     class _Iterator:

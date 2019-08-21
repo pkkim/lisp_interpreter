@@ -1,6 +1,6 @@
 import functools
 
-from .types import Value, ValueType, Cons
+from .types import Value, ValueType, Cons, RuntimeError
 
 
 BUILTINS = {
@@ -42,7 +42,6 @@ def handler(name, value_type=None, minimum=None, maximum=None, exact=None):
 
 @handler('+', ValueType.NUMBER)
 def plus(args):
-    print(args)
     return sum(a.value for a in args)
 
 
@@ -134,11 +133,17 @@ def cons(args):
 
 @handler('car', exact=1)
 def car(args):
+    variant = args[0].variant
+    if variant != ValueType.CONS:
+        raise RuntimeError('Cannot take car of {variant}')
     return args[0].value.car
 
 
 @handler('cdr', exact=1)
 def car(args):
+    variant = args[0].variant
+    if variant != ValueType.CONS:
+        raise RuntimeError('Cannot take cdr of {variant}')
     return args[0].value.cdr
 
 
@@ -179,6 +184,7 @@ def _list(args):
         result_ptr.type_ = ValueType.CONS
         result_ptr.value = Cons(car=v)
         result_ptr = result_ptr.value.cdr
+    print('list result:', result)
     return result
 
 
