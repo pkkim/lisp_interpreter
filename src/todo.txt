@@ -1,5 +1,4 @@
-Implementations of map, reduce, filter: These need to access the environment to
-run the callbacks.
-
 Bitwise: maybe leave for later
+
+Variadic functions are needed to make all keywords into first-class functions
 
