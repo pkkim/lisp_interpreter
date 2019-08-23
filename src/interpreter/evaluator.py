@@ -71,25 +71,25 @@ class Environment:
         if name == 'block':
             self.push_empty_scope()
             for statement in args:
-                value = self.eval_2(statement.value.car)
+                value = self.eval(statement.value.car)
             self.pop_scope()
             return value
         elif name == 'if':
             cond, if_true, if_false = args
-            cond_result = self.eval_2(cond.value.car)
+            cond_result = self.eval(cond.value.car)
             _assert(
                 cond_result.variant == ValueType.BOOLEAN and \
                         isinstance(cond_result.value, bool),
                 f'Condition returned non-bool value: {cond_result}'
             )
-            return self.eval_2(
+            return self.eval(
                 if_true.value.car
                 if cond_result.value
                 else if_false.value.car
             )
         elif name == 'list':
             # order of evaluation matters
-            list_value = [self.eval_2(v.value.car) for v in args]
+            list_value = [self.eval(v.value.car) for v in args]
             result = to_list(list_value)
             return result
         elif name == 'lambda':
@@ -104,7 +104,7 @@ class Environment:
             _assert_arity(name, args, 2)
             key_node, value_node = args
             assert key_node.value.car.variant == ValueType.STRING
-            value = self.eval_2(value_node.value.car)
+            value = self.eval(value_node.value.car)
             method = self.set if name == 'set' else self.def_
             method(key_node.value.car.value, value)
             return value
@@ -116,7 +116,7 @@ class Environment:
                 (arg.value.car.value.car.value == 'quote'),
                 f'argument to eval must be of form (quote X) but got {arg}',
             )
-            return self.eval_2(arg.value.car.value.cdr.value.car)
+            return self.eval(arg.value.car.value.cdr.value.car)
         else:
             raise RuntimeError(f'Keyword not supported: {name}')
 
@@ -130,7 +130,7 @@ class Environment:
     def begin_toplevel(self):
         self.push_empty_scope()
 
-    def eval_2(self, node: Value) -> Value:
+    def eval(self, node: Value) -> Value:
         if node.variant in {ValueType.NUMBER, ValueType.BOOLEAN}:
             return node
         elif node.variant == ValueType.STRING:
@@ -156,18 +156,18 @@ class Environment:
 
             # From here, treat the args as a list, because the Cons cell is a
             # bear to work with...
-            args = [self.eval_2(arg.value.car) for arg in fn_args]
+            args = [self.eval(arg.value.car) for arg in fn_args]
             if self._is_builtin(fn_node):
                 return self._handle_builtin(fn_node.value, args)
             else:
-                fn = self.eval_2(fn_node)
+                fn = self.eval(fn_node)
                 fn_scope = fn.value.scope
                 arg_scope = {
                     k.value.car.value: v for k, v in zip(fn.value.args, args)
                 }
                 self.push_scope(fn_scope)
                 self.push_scope(arg_scope)
-                return_value = self.eval_2(fn.value.body)
+                return_value = self.eval(fn.value.body)
                 # Set new scope on function
                 updated_arg_scope = self.pop_scope()
                 if return_value.variant == ValueType.LAMBDA:
