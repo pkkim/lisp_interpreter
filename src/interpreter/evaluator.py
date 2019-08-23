@@ -30,9 +30,6 @@ def to_list(values: List[Value]) -> Value:
 KEYWORDS = {'block', 'if', 'list', 'lambda', 'set', 'def', 'eval'}
 
 
-KEYWORD_VALUES = {'nil'}
-
-
 @attr.s(auto_attribs=True, slots=True)
 class Environment:
     scopes: Deque[Dict[str, Value]] = attr.ib(factory=collections.deque)
@@ -111,12 +108,17 @@ class Environment:
         elif name == 'eval':
             _assert_arity('eval', args, 1)
             arg, = args
-            _assert(
-                (arg.value.car.variant == ValueType.CONS) and
-                (arg.value.car.value.car.value == 'quote'),
-                f'argument to eval must be of form (quote X) but got {arg}',
+            to_reeval = self.eval(arg.value.car)
+            quoted = (
+                (to_reeval.variant == ValueType.CONS) and
+                (to_reeval.value.car.variant == ValueType.STRING) and
+                (to_reeval.value.car.value == 'quote')
             )
-            return self.eval(arg.value.car.value.cdr.value.car)
+            # Each time we run this handler it removes one layer of eval, if
+            # necessary.
+            if quoted:
+                return self.eval(to_reeval.value.cdr.value.car)
+            return to_reeval
         else:
             raise RuntimeError(f'Keyword not supported: {name}')
 
@@ -175,3 +177,4 @@ class Environment:
                 updated_fn_scope = self.pop_scope()
                 fn.value.scope = updated_fn_scope
                 return return_value
+

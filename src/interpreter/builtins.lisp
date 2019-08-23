@@ -1,5 +1,9 @@
 (def nil (list))
 
+'(This somehow feels bad)
+(def eval (lambda (x) (eval x)))
+(def quote (lambda (x) (quote x)))
+
 (def filter
 	 (lambda (f l)
 	   (if (= l nil)
@@ -22,4 +26,5 @@
 
 (def make-acc (lambda (starting) (lambda (incr) ((set starting (+ starting incr)); starting))))
 (def prev (lambda (starting) (lambda (next) ((def this starting); (set starting next); this))))
+
 
