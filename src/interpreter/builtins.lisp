@@ -14,6 +14,12 @@
 		 nil
 		 (cons (f (car l)) (map f (cdr l))))))
 
+(def reduce
+	 (lambda (f l init)
+	   (if (= l nil)
+		 init
+		 (reduce f (cdr l) (f init (car l))))))
+
 (def make-acc (lambda (starting) (lambda (incr) ((set starting (+ starting incr)); starting))))
 (def prev (lambda (starting) (lambda (next) ((def this starting); (set starting next); this))))
 

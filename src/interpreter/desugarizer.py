@@ -3,10 +3,14 @@ from typing import Optional, List
 
 import attr
 
-from .types import Token, TokenType, TokenTree
+from .types import Token, TokenType, TokenTree, ParseError
 
 
 def desugar(tokens: List[Token]) -> List[TokenTree]:
+    if (tokens.count(Token(TokenType.OPEN_PAREN)) != 
+            tokens.count(Token(TokenType.CLOSE_PAREN))):
+        raise ParseError('Unbalanced parentheses')
+
     result = TokenTree()  # actually the value of this will be returned
     curr = result
     parents = collections.deque()

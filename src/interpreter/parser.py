@@ -3,12 +3,7 @@ from typing import Optional, Deque, List, Any
 
 import attr
 
-from .types import Token, TokenType, Value, ValueType, TokenTree
-
-
-
-class ParseError(Exception):
-    pass
+from .types import Token, TokenType, Value, ValueType, TokenTree, ParseError
 
 
 # @attr.s(auto_attribs=True, slots=True)

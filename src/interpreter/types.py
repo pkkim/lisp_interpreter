@@ -49,6 +49,10 @@ class RuntimeError(Exception):
     pass
 
 
+class ParseError(Exception):
+    pass
+
+
 @attr.s(auto_attribs=True, slots=True)
 class Value:
     variant: ValueType
