@@ -6,9 +6,9 @@ import attr
 from .types import Token, TokenType, Value, ValueType, TokenTree, ParseError
 
 
-def parse2(token) -> Value:
+def parse(token) -> Value:
     if isinstance(token, TokenTree):
-        return Value.list_to_cons([parse2(elem) for elem in token.value])
+        return Value.list_to_cons([parse(elem) for elem in token.value])
     elif isinstance(token, Token):
         if token.variant == TokenType.NUMBER:
             return Value(ValueType.NUMBER, token.value)
