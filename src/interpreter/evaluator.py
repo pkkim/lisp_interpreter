@@ -172,9 +172,12 @@ class Environment:
                 return_value = self.eval(fn.value.body)
                 # Set new scope on function
                 updated_arg_scope = self.pop_scope()
-                if return_value.variant == ValueType.LAMBDA:
-                    return_value.value.scope = updated_arg_scope
                 updated_fn_scope = self.pop_scope()
+                if return_value.variant == ValueType.LAMBDA:
+                    # need to merge here. order matters
+                    return_value_scope = updated_fn_scope.copy()
+                    return_value_scope.update(updated_arg_scope)
+                    return_value.value.scope = return_value_scope
                 fn.value.scope = updated_fn_scope
                 return return_value
 
