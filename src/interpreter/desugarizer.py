@@ -32,13 +32,13 @@ def desugar(tokens: List[Token]) -> List[TokenTree]:
         # TODO should catch syntax errors here
         curr = q.pop()
 
-        # handle semicolons
-        if any(isinstance(t, Token) and t.variant == TokenType.SEMICOLON
+        # handle commas
+        if any(isinstance(t, Token) and t.variant == TokenType.THEN
                 for t in curr.value):
             new_value = []
             new_value.append(Token(TokenType.STRING, 'block'))
             for t in curr.value:
-                if isinstance(t, TokenTree) or t.variant != TokenType.SEMICOLON:
+                if isinstance(t, TokenTree) or t.variant != TokenType.THEN:
                     new_value.append(t)
             curr.value = new_value
 

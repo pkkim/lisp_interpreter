@@ -9,7 +9,7 @@ class TokenType:
     OPEN_PAREN = 'open_paren'
     CLOSE_PAREN = 'close_paren'
     QUOTE = 'quote'
-    SEMICOLON = 'semicolon'
+    THEN = 'then'
 
     # Atomic types (a variable is an unquoted string; QUOTE + STRING -> normal
     # string; otherwise a STRING is a variable)

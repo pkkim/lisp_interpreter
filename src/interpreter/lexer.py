@@ -15,7 +15,7 @@ syntactic_tokens = {
     '(': Token(TokenType.OPEN_PAREN),
     ')': Token(TokenType.CLOSE_PAREN),
     '\'': Token(TokenType.QUOTE),
-    ';': Token(TokenType.SEMICOLON),
+    ',': Token(TokenType.THEN),
 }
 
 
